@@ -20,7 +20,17 @@ const STOCKS = ['NASDAQ:AAPL', 'NASDAQ:MSFT', 'NASDAQ:GOOGL', 'NASDAQ:AMZN', 'NA
 
 // ---------- data ----------
 const client = new TradingView.Client();
-client.onError((...e) => log('client error', ...e));
+let diagnosed = false;
+async function diagnose() { // when the websocket fails: is it this network, or TradingView refusing us?
+  if (diagnosed) return; diagnosed = true;
+  const axios = require('axios');
+  log('diagnostics: proxy env', JSON.stringify({ HTTPS_PROXY: process.env.HTTPS_PROXY || process.env.https_proxy || '', HTTP_PROXY: process.env.HTTP_PROXY || process.env.http_proxy || '', NO_PROXY: process.env.NO_PROXY || process.env.no_proxy || '' }), 'node', process.version);
+  for (const url of ['https://www.tradingview.com/', 'https://data.tradingview.com/', 'https://scanner.tradingview.com/global/scan', 'https://discord.com/api/']) {
+    const r = await axios.get(url, { timeout: 10000, validateStatus: () => true, maxRedirects: 0 }).catch((e) => ({ status: 'ERR', statusText: e.code || e.message }));
+    log(`diagnostics: GET ${url} -> ${r.status} ${r.statusText || ''}`.trim());
+  }
+}
+client.onError((...e) => { log('client error', ...e); diagnose(); });
 function loadCandles(symbol, timeframe, range) { // closed candles only, oldest first
   return new Promise((resolve, reject) => {
     const chart = new client.Session.Chart(); let idle;
