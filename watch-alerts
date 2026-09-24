@@ -1,0 +1,18 @@
+#!/bin/sh
+# Starts the Discord alert watcher. Stop it with Ctrl+C.
+#   ./watch-alerts          watch the rules in alerts.js
+#   ./watch-alerts --test   send one test message to Discord
+DIR="$(cd "$(dirname "$0")" && pwd)"
+NODE="$DIR/.node/node-v24.21.0-darwin-arm64/bin/node"
+WATCHER="$DIR/TradingView-API/alert-watcher.js"
+
+if [ "$1" = "--test" ]; then exec "$NODE" "$WATCHER" --test; fi
+
+# caffeinate keeps the Mac awake while the watcher runs (the screen can still turn off).
+# Exit code 1 means the connection dropped: wait and reconnect. Anything else means stop.
+while true; do
+  caffeinate -i "$NODE" "$WATCHER"
+  [ $? -ne 1 ] && break
+  echo "Reconnecting in 15 seconds..."
+  sleep 15
+done

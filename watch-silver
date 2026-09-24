@@ -1,0 +1,20 @@
+#!/bin/sh
+# Starts the silver "trapped shorts" watcher. Stop it with Ctrl+C.
+#   ./watch-silver             watch live
+#   ./watch-silver --history   replay the last months and print what would have fired
+#   ./watch-silver --test      send one test message to Discord
+DIR="$(cd "$(dirname "$0")" && pwd)"
+NODE="$DIR/.node/node-v24.21.0-darwin-arm64/bin/node"
+WATCHER="$DIR/TradingView-API/silver-watcher.js"
+
+case "$1" in
+  --test|--history) exec "$NODE" "$WATCHER" "$1" ;;
+esac
+
+# caffeinate keeps the Mac awake while the watcher runs. Exit code 1 = connection dropped: reconnect.
+while true; do
+  caffeinate -i "$NODE" "$WATCHER"
+  [ $? -ne 1 ] && break
+  echo "Reconnecting in 15 seconds..."
+  sleep 15
+done

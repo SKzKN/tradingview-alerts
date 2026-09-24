@@ -1,0 +1,14 @@
+# secrets
+.env
+# local Node.js runtime and dependencies
+.node/
+node_modules/
+# downloaded market data and results (large, regenerable)
+backtest/data/
+results/
+# app/session files
+.claude/
+.DS_Store
+
+# upstream library CI/config, not ours
+TradingView-API/.github/

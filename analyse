@@ -1,0 +1,5 @@
+#!/bin/sh
+# Runs the analysis with the Node.js bundled in this folder.
+# Usage: ./analyse BINANCE:BTCUSDT 60
+DIR="$(cd "$(dirname "$0")" && pwd)"
+exec "$DIR/.node/node-v24.21.0-darwin-arm64/bin/node" "$DIR/TradingView-API/my-analysis.js" "$@"
